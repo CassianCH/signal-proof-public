@@ -73,6 +73,8 @@ signature    = Ed25519.sign(bytes(chain_hash))
 
 Settings → Pages 选择 **GitHub Actions**。工作流每小时 UTC 第 17 分钟运行，也可手动运行。先验证旧归档，再拉取最多 100 条新记录；TSA 未完成时等待下次运行，不跳号。旧记录改写、链头回退、提前开放、字段越界、签名或 TSA 错误均使同步失败，保留旧版本。
 
+源端同步失败时，Pages 仍可重新部署仓库中已验证的既有归档，不能把失败误称为同步成功；工作流整体会显示失败，页面最近同步日期不更新。
+
 每日检查日期会产生一次提交。定时任务可能延迟或暂停，因此 Pages 可能晚于满七天更新，但不能提前。参考 [GitHub 定时任务说明](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows)。网站构建采用显式文件白名单，不复制私有部署工作区。更换公钥或协议时必须保留历史信任材料与交接检查点。
 
 ## 证明边界

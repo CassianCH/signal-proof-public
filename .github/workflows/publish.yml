@@ -41,6 +41,7 @@ jobs:
           fi
   build:
     needs: archive
+    if: ${{ always() && !cancelled() }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
