@@ -2,7 +2,7 @@
 
 Published by **[@EdwardForst379 on X](https://x.com/EdwardForst379)**.
 
-A public archive of delayed signal receipts. The server signs each accepted signal and requests an independent RFC 3161 timestamp immediately. Receipts become public **168 hours after server receipt**. Private strategy code, strategy names, reasoning, original event identifiers, signing keys and ingestion tokens are not published.
+A public archive of immediate commitments and delayed signal receipts. The server publishes a signed commitment for each accepted signal and requests an independent RFC 3161 timestamp asynchronously. Signal content becomes public **no earlier than 168 hours after server receipt and only after TSA verification**. Private strategy code, strategy names, reasoning, original event identifiers, signing keys and ingestion tokens are not published.
 
 ## Attribution and protection against impersonation
 
@@ -15,6 +15,7 @@ The publisher should post the canonical site URL and fingerprint from that X acc
 The Pages site provides a signal list, local browser verification, the complete JSON archive, individual JSON / TSQ / TSR downloads, the public key, the TSA root certificate and this README.
 
 - `data/records.json`: consecutive archived receipts starting at sequence 1.
+- `data/commitments.json`: immediate signed commitments with explicit pending or verified TSA status, without signal content or its hidden nonce. The GitHub copy is updated hourly, not instantly.
 - `data/manifest.json`: the archived sequence, chain hash and last successful sync-check date in UTC.
 - Site paths `data/records/1.json`, `1.tsq`, `1.tsr`: the first receipt, RFC 3161 request and response. Binary files are generated from JSON during the Pages build.
 - `trust/public-key.txt`: the Ed25519 public key as Base64-encoded SPKI DER.
@@ -71,13 +72,13 @@ chain_hash   = SHA256(canonical(record))
 signature    = Ed25519.sign(bytes(chain_hash))
 ```
 
-The signed `record` contains generic stream and deployment identifiers, sequence, server receipt time, payload hash, previous hash and key identifier. The first previous hash is 64 zeros. The TSA message imprint equals `chain_hash`. `release_at` is derived as the receipt time plus 604800000 milliseconds; it is not a new signed field.
+The signed `record` contains generic stream and deployment identifiers, sequence, server receipt time, payload hash, previous hash and key identifier. The first previous hash is 64 zeros. The TSA message imprint equals `chain_hash`. `release_at` is derived as the receipt time plus 604800000 milliseconds; it is not a new signed field. New signal schema version `2` includes a cryptographically random 256-bit `disclosure_nonce`. This hidden nonce is included in the signal hash and released with the signal, preventing guessing a low-entropy signal from its immediate commitment. Identical sanitized state messages are deduplicated before nonce generation.
 
 Public identifiers are generic: `signal`, `signal-production`, `signal-production-v1` and `key-v1`. Instrument, direction, target exposure and time are retained to inspect the signals, not private reasoning.
 
 ## Synchronization and Pages deployment
 
-Set the repository Actions Secret `SOURCE_WORKER_URL` to the existing HTTPS Worker base URL, without `/ingest`. This is a source address, not a signing key or ingestion token. The sync script reads unauthenticated public `/head` and `/records/<seq>` only; it never calls ingestion or owner endpoints.
+Set the repository Actions Secret `SOURCE_WORKER_URL` to the existing HTTPS Worker base URL, without `/ingest`. This is a source address, not a signing key or ingestion token. The sync script reads unauthenticated public `/head`, `/records/<seq>`, `/commitments/head` and `/commitments/<seq>` only; it never calls ingestion or owner endpoints. Commitments are archived even while TSA is pending; pending commitments are refreshed, and immutable signed fields cannot change. Later disclosures must match the archived commitments.
 
 In Settings > Pages, select **GitHub Actions**. The workflow runs at minute 17 of each UTC hour and supports manual runs. It verifies existing records before fetching up to 100 new records. Pending TSA verification blocks the prefix until a later run; records are never silently skipped. Rewritten records, a regressing head, early release, unexpected fields, bad signatures or invalid timestamps fail the sync and preserve the previous archive.
 
@@ -88,8 +89,14 @@ The check date generates one daily commit. Scheduled jobs can be delayed or susp
 ## Limits of the proof
 
 - It verifies signed content and its existence by an independent TSA time. The signal's own claimed time is not the TSA time.
-- It verifies internal continuity of the downloaded records, not the absence of source filtering, missed signals or a hidden suffix.
+- Immediate commitments strengthen detection of later withholding or rewriting for observers who save them before disclosure. They still cannot prove every source alert was delivered, prevent source filtering before receipt, or detect a suffix never observed externally. GitHub's hourly schedule leaves an observation gap.
 - It does not prove private-strategy execution, order fills, profitability or strategy quality.
-- OCSP / CRL revocation checks are not performed; results explicitly report `revocation_status: not_checked`. This is not complete long-term validation.
+- Each new verified timestamp includes the issuer-signed CRL snapshot. The verifier checks its signature, issuer, validity interval at TSA issuance and signer serial, reporting `crl_checked_at_issuance`. This is not a live OCSP check, a guarantee against later revocation or complete long-term validation.
 - GitHub commits are not TSA timestamps. Administrators can modify or delete repositories; readers should retain copies and independent checkpoints.
-- The seven-day embargo is enforced by server access restrictions, not content encryption. Previously downloaded data cannot be recalled.
+- New stored receipts use AES-256-GCM application encryption with an independent server secret; the random IV and sequence-bound authentication detect tampering. The server can decrypt them, so this does not protect against a compromised server administrator. Previously downloaded data cannot be recalled.
+
+## Ingestion hardening
+
+Production ingestion requires the dedicated ingestion token and an allowed TradingView source IP. Administrative and isolated-test access uses a different token, never the ingestion token. Source filtering reduces unauthorized submissions; it does not provide a TradingView cryptographic attestation. The server accepts claimed signal times from 15 minutes before receipt to 5 minutes after it (to accommodate a five-minute bar-close timestamp), exposures from 0 to 32, and a zero exposure only for a flat target. It limits new unique signals to 60 per minute per ledger. Authentication failures and invalid requests do not enter the signal chain.
+
+The browser separately reports pending timestamps and timestamps issued more than 15 minutes after server receipt. Such a delayed timestamp proves existence by the TSA time, not at the claimed signal time. Signal direction and exposure remain public after disclosure; private reasoning is never included. The publisher should use only `{{strategy.order.alert_message}}` as the TradingView alert body, without order comment, order ID or strategy-name placeholders.

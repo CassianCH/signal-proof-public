@@ -26,6 +26,18 @@ jobs:
           package-manager-cache: false
       - run: npm ci
       - run: npm test
+      - run: npm run sync:commitments
+        env:
+          SOURCE_WORKER_URL: ${{ secrets.SOURCE_WORKER_URL }}
+      - name: Preserve validated commitments independently of disclosure availability
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add data/commitments.json
+          if ! git diff --cached --quiet; then
+            git commit -m 'Archive immediate signed commitments'
+            git push origin HEAD:main
+          fi
       - run: npm run sync
         env:
           SOURCE_WORKER_URL: ${{ secrets.SOURCE_WORKER_URL }}
@@ -34,7 +46,7 @@ jobs:
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add data/records.json data/manifest.json
+          git add data/records.json data/manifest.json data/commitments.json
           if ! git diff --cached --quiet; then
             git commit -m 'Update validated public proof archive'
             git push origin HEAD:main

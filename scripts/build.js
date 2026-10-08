@@ -12,3 +12,4 @@ for(const receipt of records){
  writeFileSync(base+'.tsr',Buffer.from(receipt.tsa.response_b64,'base64'));
 }
 console.log('Built public site with '+records.length+' released records.');
+copyFileSync('data/commitments.json','dist/data/commitments.json');

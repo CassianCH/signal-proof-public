@@ -1,5 +1,6 @@
 import {readFileSync,writeFileSync,renameSync} from 'node:fs';
 import {collectReleased} from '../lib/archive.js';
+import {collectCommitments,matchDisclosures} from '../lib/commitments.js';
 const config=JSON.parse(readFileSync('config.json','utf8'));
 const source=process.env.SOURCE_WORKER_URL;
 if(!source || new URL(source).protocol!=='https:')throw Error('Set SOURCE_WORKER_URL to the existing HTTPS Worker base URL');
@@ -18,7 +19,9 @@ async function fetchJson(path){
  }
 }
 const result=await collectReleased(existing,trust,fetchJson);
-for(const [path,value] of [['data/records.json',result.records],['data/manifest.json',result.manifest]]){
+const commitments=await collectCommitments(JSON.parse(readFileSync('data/commitments.json','utf8')),trust,fetchJson);
+matchDisclosures(result.records,commitments);
+for(const [path,value] of [['data/records.json',result.records],['data/commitments.json',commitments],['data/manifest.json',result.manifest]]){
  writeFileSync(path+'.tmp',JSON.stringify(value,null,2)+'\n'); renameSync(path+'.tmp',path);
 }
 console.log(JSON.stringify({archived_records:result.records.length,new_records:result.records.length-existing.length}));
