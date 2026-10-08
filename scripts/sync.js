@@ -6,9 +6,16 @@ if(!source || new URL(source).protocol!=='https:')throw Error('Set SOURCE_WORKER
 const trust={config,key:readFileSync('trust/public-key.txt','utf8').trim(),root:readFileSync('trust/freetsa-root.pem','utf8')};
 const existing=JSON.parse(readFileSync('data/records.json','utf8'));
 async function fetchJson(path){
- const response=await fetch(source.replace(/\/$/,'')+path,{signal:AbortSignal.timeout(20000)});
- if(!response.ok)throw Error('Worker HTTP '+response.status+' at '+path);
- return response.json();
+ for(let attempt=0;attempt<6;attempt++){
+   try{
+     const response=await fetch(source.replace(/\/$/,'')+path,{signal:AbortSignal.timeout(20000)});
+     if(!response.ok)throw Error('Worker HTTP '+response.status+' at '+path);
+     return await response.json();
+   }catch(error){
+     if(attempt===5)throw error;
+     await new Promise(resolve=>setTimeout(resolve,5000));
+   }
+ }
 }
 const result=await collectReleased(existing,trust,fetchJson);
 for(const [path,value] of [['data/records.json',result.records],['data/manifest.json',result.manifest]]){
