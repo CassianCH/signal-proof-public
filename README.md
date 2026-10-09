@@ -1,6 +1,6 @@
 # Signal Proof
 
-[Website](https://cassianch.github.io/signal-proof-public/) · [Publisher on X](https://x.com/EdwardForst379)
+[Website](https://edwardforst.github.io/signal-proof-public/) · [Publisher on X](https://x.com/EdwardForst379)
 
 Signals are disclosed after 168 hours. Verification checks SHA-256 commitments, Ed25519 signatures, RFC 3161 timestamps and hash-chain continuity.
 
@@ -8,11 +8,11 @@ Signals are disclosed after 168 hours. Verification checks SHA-256 commitments, 
 
 Open the website and select **Verify all records**, or download:
 
-- [Records](https://cassianch.github.io/signal-proof-public/data/records.json)
-- [Commitments](https://cassianch.github.io/signal-proof-public/data/commitments.json)
-- [Checkpoint](https://cassianch.github.io/signal-proof-public/data/manifest.json)
-- [Public key](https://cassianch.github.io/signal-proof-public/trust/public-key.txt)
-- [TSA certificate](https://cassianch.github.io/signal-proof-public/trust/freetsa-root.pem)
+- [Records](https://edwardforst.github.io/signal-proof-public/data/records.json)
+- [Commitments](https://edwardforst.github.io/signal-proof-public/data/commitments.json)
+- [Checkpoint](https://edwardforst.github.io/signal-proof-public/data/manifest.json)
+- [Public key](https://edwardforst.github.io/signal-proof-public/trust/public-key.txt)
+- [TSA certificate](https://edwardforst.github.io/signal-proof-public/trust/freetsa-root.pem)
 
 Individual JSON, TSQ and TSR files are available on the website.
 

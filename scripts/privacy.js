@@ -1,6 +1,6 @@
 import{readFileSync,readdirSync}from'node:fs';
 import{join}from'node:path';
-const allowedHosts=new Set(['github.com','cassianch.github.io','x.com','registry.npmjs.org','paulmillr.com','freetsa.org','www.freetsa.org']);
+const allowedHosts=new Set(['github.com','edwardforst.github.io','x.com','registry.npmjs.org','paulmillr.com','freetsa.org','www.freetsa.org']);
 export function checkPublicText(text,label){
  if(/-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----/.test(text))throw Error('Private key in '+label);
  if(/\/(?:Users|home)\/[^/\s]+\//.test(text))throw Error('Local path in '+label);
