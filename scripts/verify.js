@@ -13,4 +13,3 @@ if(recordsPath==='data/records.json'){
  assert.equal(result.verified_records,manifest.published_seq);assert.equal(result.chain_hash,manifest.chain_hash);
 }
 console.log(JSON.stringify(result,null,2));
-if(result.verified_records===0)console.log('No released records yet; no signal or TSA has been verified.');

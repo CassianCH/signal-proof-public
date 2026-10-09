@@ -1,6 +1,8 @@
 import {mkdirSync,copyFileSync,writeFileSync,readFileSync} from 'node:fs';
 import {build} from 'esbuild';
-// Explicit allowlist: no recursive copying of the private Worker workspace.
+import {checkPublicTree,checkPublishedFiles} from './privacy.js';
+checkPublicTree();
+// Publish only the listed verification files.
 mkdirSync('dist/trust',{recursive:true});mkdirSync('dist/data/records',{recursive:true});
 for(const [src,dst] of [['site/index.html','dist/index.html'],['site/styles.css','dist/styles.css'],['README.md','dist/README.md'],['config.json','dist/config.json'],['trust/public-key.txt','dist/trust/public-key.txt'],['trust/freetsa-root.pem','dist/trust/freetsa-root.pem'],['data/records.json','dist/data/records.json'],['data/manifest.json','dist/data/manifest.json']])copyFileSync(src,dst);
 await build({entryPoints:['site/app.js'],bundle:true,format:'esm',platform:'browser',target:'es2022',outfile:'dist/app.js',minify:true});
@@ -13,3 +15,4 @@ for(const receipt of records){
 }
 console.log('Built public site with '+records.length+' released records.');
 copyFileSync('data/commitments.json','dist/data/commitments.json');
+checkPublishedFiles('dist',records.map(r=>r.record.seq));

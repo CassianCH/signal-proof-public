@@ -1,23 +1,11 @@
 import {readFileSync,writeFileSync,renameSync} from 'node:fs';
 import {collectReleased} from '../lib/archive.js';
 import {collectCommitments,matchDisclosures} from '../lib/commitments.js';
+import {sourceClient,actionMask} from './source.js';
 const config=JSON.parse(readFileSync('config.json','utf8'));
-const source=process.env.SOURCE_WORKER_URL;
-if(!source || new URL(source).protocol!=='https:')throw Error('Set SOURCE_WORKER_URL to the existing HTTPS Worker base URL');
+const fetchJson=sourceClient(process.env.SOURCE_URL,{mask:actionMask});
 const trust={config,key:readFileSync('trust/public-key.txt','utf8').trim(),root:readFileSync('trust/freetsa-root.pem','utf8')};
 const existing=JSON.parse(readFileSync('data/records.json','utf8'));
-async function fetchJson(path){
- for(let attempt=0;attempt<6;attempt++){
-   try{
-     const response=await fetch(source.replace(/\/$/,'')+path,{signal:AbortSignal.timeout(20000)});
-     if(!response.ok)throw Error('Worker HTTP '+response.status+' at '+path);
-     return await response.json();
-   }catch(error){
-     if(attempt===5)throw error;
-     await new Promise(resolve=>setTimeout(resolve,5000));
-   }
- }
-}
 const result=await collectReleased(existing,trust,fetchJson);
 const commitments=await collectCommitments(JSON.parse(readFileSync('data/commitments.json','utf8')),trust,fetchJson);
 matchDisclosures(result.records,commitments);

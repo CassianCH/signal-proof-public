@@ -28,7 +28,7 @@ jobs:
       - run: npm test
       - run: npm run sync:commitments
         env:
-          SOURCE_WORKER_URL: ${{ secrets.SOURCE_WORKER_URL }}
+          SOURCE_URL: ${{ secrets.SOURCE_WORKER_URL }}
       - name: Preserve validated commitments independently of disclosure availability
         run: |
           git config user.name 'github-actions[bot]'
@@ -40,7 +40,7 @@ jobs:
           fi
       - run: npm run sync
         env:
-          SOURCE_WORKER_URL: ${{ secrets.SOURCE_WORKER_URL }}
+          SOURCE_URL: ${{ secrets.SOURCE_WORKER_URL }}
       - run: npm run verify
       - name: Commit validated public archive only
         run: |
