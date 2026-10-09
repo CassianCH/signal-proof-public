@@ -10,7 +10,7 @@ Public, independently verifiable signal records, disclosed after a seven-day del
 
 Each record has an Ed25519 signature, a hash linking it to the previous record, and an independent RFC 3161 timestamp. A commitment is published before disclosure; the disclosed signal must match that commitment. Signal content is released no earlier than 168 hours after receipt, and only after timestamp verification.
 
-Verification checks content integrity, signatures, timestamps, chain continuity and the disclosure delay. It does not prove that every possible signal was recorded, or establish execution, fills or profitability. Retain commitments and checkpoints independently to detect later changes or missing records.
+Verification checks content integrity, signatures, timestamps, chain continuity and the disclosure delay.
 
 ## Browse, download and verify
 
@@ -21,8 +21,6 @@ Open the [website](https://cassianch.github.io/signal-proof-public/) and click *
 - [Archive checkpoint](https://cassianch.github.io/signal-proof-public/data/manifest.json)
 - [Public key](https://cassianch.github.io/signal-proof-public/trust/public-key.txt)
 - [Timestamp trust certificate](https://cassianch.github.io/signal-proof-public/trust/freetsa-root.pem)
-
-Pending timestamps are not verified timestamps. An empty released archive verifies no signal. The archive may update after the seven-day boundary; the signal's stated time is not its independent timestamp.
 
 ## Independent verification
 
@@ -39,11 +37,9 @@ Exit code 0 means the archived records, commitments and checkpoint passed the im
 node scripts/verify.js downloaded-records.json trusted-public-key.txt trusted-root.pem
 ```
 
-The record array must start at sequence 1 and remain consecutive. Custom files are not automatically checked against the repository checkpoint; compare the expected final sequence and hash independently. Verification of downloaded records runs offline after dependencies are installed.
+The record array must start at sequence 1 and remain consecutive. When using custom files, compare the final sequence and hash with your saved checkpoint. Verification of downloaded records runs offline after dependencies are installed.
 
-## Confirm authenticity
-
-Confirm the website URL and key fingerprint through the publisher's independently trusted X profile. A copied page or profile link alone does not prove ownership.
+## Key fingerprints
 
 Public-key fingerprint — SHA-256 of SPKI DER:
 
@@ -56,5 +52,3 @@ Timestamp root certificate fingerprint — SHA-256 of the downloaded PEM file:
 ```text
 2151b61137ffa86bf664691ba67e7da0b19f98c758e3d228d5d8ebf27e044438
 ```
-
-Downloading both records and trust keys from the same location is not independent identity verification. Browser results also depend on the site's verification code. GitHub history is not an independent timestamp; retain your own copies.
