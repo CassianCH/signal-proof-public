@@ -11,3 +11,9 @@ test('Public page, runtime messages and downloaded README are English with publi
  assert.ok(html.includes('https://x.com/EdwardForst379'));
  assert.ok(html.includes('A copied page or profile link alone does not prove ownership.'));
 });
+test('Observer README contains the public site and no source or operational disclosure',()=>{
+ const text=readFileSync(new URL('../README.md',import.meta.url),'utf8');
+ assert.ok(text.includes('https://cassianch.github.io/signal-proof-public/'));
+ assert.ok(text.includes('npm run verify'));
+ assert.equal(/tradingview|SOURCE_WORKER_URL|\/ingest|signalToken|strategy\.order|cloudflare|\bmrs\b|mcstruct|\bmcs\b/i.test(text),false);
+});
