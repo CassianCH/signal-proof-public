@@ -1,5 +1,6 @@
 import {verifyArchive} from '../lib/archive.js';
 import {verifyCommitments,matchDisclosures} from '../lib/commitments.js';
+import {timestampTiming} from '../lib/timing.js';
 const el=id=>document.getElementById(id);
 const state=el('verification-status');
 async function load(path,json=true){const r=await fetch(path,{cache:'no-store'});if(!r.ok)throw Error('Download failed: '+path);return json?r.json():r.text();}
@@ -13,7 +14,8 @@ try{
  el('empty').hidden=records.length!==0;
  for(const receipt of [...records].reverse()){
   const tr=document.createElement('tr');
-  for(const value of [receipt.record.seq,date(receipt.signal.signal_time),receipt.signal.action+' / '+receipt.signal.target_position,receipt.signal.target_exposure,date(receipt.tsa.gen_time)]){const td=document.createElement('td');td.textContent=value;tr.append(td);}
+  const timing=timestampTiming(receipt.record.received_at,receipt.tsa.gen_time);
+  for(const value of [receipt.record.seq,date(receipt.signal.signal_time),receipt.signal.action+' / '+receipt.signal.target_position,receipt.signal.target_exposure,date(receipt.tsa.gen_time),timing.timing+' ('+(timing.delay_ms/1000).toFixed(3)+' s)']){const td=document.createElement('td');td.textContent=value;tr.append(td);}
   const td=document.createElement('td');for(const ext of ['json','tsq','tsr']){const a=document.createElement('a');a.href='data/records/'+receipt.record.seq+'.'+ext;a.download='signal-'+receipt.record.seq+'.'+ext;a.textContent=ext.toUpperCase();td.append(a);}tr.append(td);el('records').append(tr);
  }
  state.textContent='Ready to verify.';el('verify').disabled=false;
@@ -23,8 +25,8 @@ try{
    const result=await verifyArchive(records,trust);
    const committed=await verifyCommitments(commitments,trust);matchDisclosures(records,commitments);
    if(result.verified_records!==manifest.published_seq||result.chain_hash!==manifest.chain_hash)throw Error('Manifest mismatch');
-   state.className='success';state.textContent='Checks passed. Verified records: '+result.verified_records+'.';
-   state.textContent+=' Commitments: '+committed.commitments+'; TSA verified: '+committed.verified_tsa+'; pending: '+committed.pending_tsa+'; TSA delayed over 15 minutes: '+committed.late_tsa+'.';
+   state.className='success';state.textContent='Cryptographic checks passed. Released records: '+result.verified_records+'; timely TSA: '+result.timely_tsa+'; late TSA: '+result.late_tsa+'.';
+   state.textContent+=' Commitments: '+committed.commitments+'; TSA verified: '+committed.verified_tsa+'; timely TSA: '+committed.timely_tsa+'; late TSA: '+committed.late_tsa+'; pending: '+committed.pending_tsa+'.';
   }catch(error){state.className='error';state.textContent='Verification failed: '+error.message;}finally{el('verify').disabled=false;}
  });
 }catch(error){state.className='error';state.textContent='Loading failed: '+error.message;}

@@ -11,6 +11,9 @@ test('Public page, runtime messages and downloaded README are English with publi
  assert.ok(html.includes('https://x.com/EdwardForst379'));
  assert.ok(html.includes("connect-src 'self'"));
  assert.ok(html.includes('Verification source code'));
+ assert.ok(html.includes('How it works'));
+ assert.ok(html.includes('retained in the archive and hash chain'));
+ assert.ok(html.includes('TSA timing / delay'));
 });
 test('Observer README contains the public site and no source or operational disclosure',()=>{
  const text=readFileSync(new URL('../README.md',import.meta.url),'utf8');
